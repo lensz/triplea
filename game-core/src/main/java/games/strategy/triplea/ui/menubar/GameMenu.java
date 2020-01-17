@@ -6,6 +6,7 @@ import games.strategy.engine.framework.ClientGame;
 import games.strategy.engine.framework.IGame;
 import games.strategy.engine.random.IRandomStats;
 import games.strategy.engine.random.RandomStatsDetails;
+import games.strategy.engine.statistics.StatisticsDialog;
 import games.strategy.triplea.odds.calculator.BattleCalculatorDialog;
 import games.strategy.triplea.settings.ClientSetting;
 import games.strategy.triplea.ui.PoliticalStateOverview;
@@ -30,9 +31,6 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import org.knowm.xchart.QuickChart;
-import org.knowm.xchart.XChartPanel;
-import org.knowm.xchart.XYChart;
 import org.triplea.sound.SoundOptions;
 import org.triplea.swing.IntTextField;
 import org.triplea.swing.SwingAction;
@@ -301,15 +299,11 @@ final class GameMenu extends JMenu {
     add(
         SwingAction.of(
             "Game statistics",
-            e -> {
-              double[] xData = new double[] {0.0, 1.0, 2.0};
-              double[] yData = new double[] {2.0, 1.0, 40.0};
-
-              XYChart chart = QuickChart.getChart("Sample Chart", "X", "Y", "y(x)", xData, yData);
-
-              XChartPanel<XYChart> chartPanel = new XChartPanel<>(chart);
-              JOptionPane.showMessageDialog(
-                  frame, chartPanel, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
-            }));
+            e ->
+                JOptionPane.showMessageDialog(
+                    frame,
+                    new StatisticsDialog(gameData.getHistory()),
+                    "Game statistics222",
+                    JOptionPane.INFORMATION_MESSAGE)));
   }
 }
