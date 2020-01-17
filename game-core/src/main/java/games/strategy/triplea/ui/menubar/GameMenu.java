@@ -30,9 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-
 import org.knowm.xchart.QuickChart;
-import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XChartPanel;
 import org.knowm.xchart.XYChart;
 import org.triplea.sound.SoundOptions;
@@ -300,17 +298,18 @@ final class GameMenu extends JMenu {
   }
 
   private void addStatistics() {
-    add(SwingAction.of(
-        "Game statistics",
-        e -> {
-            double[] xData = new double[]{0.0, 1.0, 2.0};
-            double[] yData = new double[]{2.0, 1.0, 40.0};
-    
-            XYChart chart = QuickChart.getChart("Sample Chart", "X", "Y", "y(x)", xData, yData);
-    
-            XChartPanel<XYChart> chartPanel = new XChartPanel<>(chart);
-            JOptionPane.showMessageDialog(frame, chartPanel, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
-        })
-    );
+    add(
+        SwingAction.of(
+            "Game statistics",
+            e -> {
+              double[] xData = new double[] {0.0, 1.0, 2.0};
+              double[] yData = new double[] {2.0, 1.0, 40.0};
+
+              XYChart chart = QuickChart.getChart("Sample Chart", "X", "Y", "y(x)", xData, yData);
+
+              XChartPanel<XYChart> chartPanel = new XChartPanel<>(chart);
+              JOptionPane.showMessageDialog(
+                  frame, chartPanel, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
+            }));
   }
 }
