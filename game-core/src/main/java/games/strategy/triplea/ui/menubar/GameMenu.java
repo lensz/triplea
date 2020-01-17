@@ -71,6 +71,7 @@ final class GameMenu extends JMenu {
     addNotificationSettings();
     addShowDiceStats();
     addRollDice();
+    addStatistics();
     addMenuItemWithHotkey(
         SwingAction.of(
             "Battle Calculator",
@@ -292,4 +293,14 @@ final class GameMenu extends JMenu {
         });
     add(rollDiceBox);
   }
+  
+  private void addStatistics() {
+    add(SwingAction.of(
+        "Game statistics",
+        e -> {
+            JOptionPane.showMessageDialog(
+                frame, null, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
+        })
+    );
+   }
 }
