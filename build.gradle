@@ -116,6 +116,7 @@ subprojects {
     }
 
     dependencies {
+        compile group: 'org.knowm.xchart', name: 'xchart', version: '3.6.1'
         errorprone "com.google.errorprone:error_prone_core:$errorProneVersion"
         implementation "com.google.guava:guava:$guavaVersion"
         testImplementation "com.github.npathai:hamcrest-optional:$hamcrestOptionalVersion"
