@@ -293,14 +293,14 @@ final class GameMenu extends JMenu {
         });
     add(rollDiceBox);
   }
-  
+
   private void addStatistics() {
-    add(SwingAction.of(
-        "Game statistics",
-        e -> {
-            JOptionPane.showMessageDialog(
-                frame, null, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
-        })
-    );
-   }
+    add(
+        SwingAction.of(
+            "Game statistics",
+            e -> {
+              JOptionPane.showMessageDialog(
+                  frame, null, "Game statistics222", JOptionPane.INFORMATION_MESSAGE);
+            }));
+  }
 }
