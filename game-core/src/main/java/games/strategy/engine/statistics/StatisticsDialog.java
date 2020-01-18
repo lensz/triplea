@@ -1,9 +1,7 @@
 package games.strategy.engine.statistics;
 
 import games.strategy.engine.data.GameData;
-import org.knowm.xchart.XChartPanel;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.*;
 import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
@@ -11,76 +9,90 @@ import java.util.Map;
 
 public class StatisticsDialog extends JPanel {
 
+    private JPanel createBattleTypesPanel(Statistics.BattleStatistics statistics) {
+        PieChartBuilder pieChartBuilder = new PieChartBuilder()
+                .height(200)
+                .width(200)
+                .title("Battle Types");
+        PieChart chart = pieChartBuilder.build();
+        statistics.getBattleTypeCount().entrySet().stream()
+                .forEach(stringDoubleEntry -> chart.addSeries(stringDoubleEntry.getKey(), stringDoubleEntry.getValue()));
+        return new XChartPanel<>(chart);
+    }
+
     public StatisticsDialog(GameData gameData) {
         Map<Statistic, Map<String, double[]>> statisticsData = Statistics.calculateGameStatisticsOverRounds(gameData);
 
         JLabel numberOfRounds = new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory()));
 
         JTabbedPane jTabbedPane = new JTabbedPane();
-        jTabbedPane.addTab("General", numberOfRounds);
-        jTabbedPane.addTab(
-                "TUVs over time",
-                createSimpleStatPanel(
-                        gameData,
-                        statisticsData,
-                        "TUV Overview",
-                        "TUV",
-                        Statistic.PredefinedStatistic.TUV
-                )
-        );
-        jTabbedPane.addTab(
-                "Production over time",
-                createSimpleStatPanel(
-                        gameData,
-                        statisticsData,
-                        "Production Overview",
-                        "Production",
-                        Statistic.PredefinedStatistic.PRODUCTION
-                )
-        );
-        jTabbedPane.addTab(
-                "Units over time",
-                createSimpleStatPanel(
-                        gameData,
-                        statisticsData,
-                        "Units Overview",
-                        "Units",
-                        Statistic.PredefinedStatistic.UNITS
-                )
-        );
-        jTabbedPane.addTab(
-                "VCs over time",
-                createSimpleStatPanel(
-                        gameData,
-                        statisticsData,
-                        "Victory City Overview",
-                        "Victory Cities",
-                        Statistic.PredefinedStatistic.VICTORY_CITY
-                )
-        );
-        jTabbedPane.addTab(
-                "VPs over time",
-                createSimpleStatPanel(
-                        gameData,
-                        statisticsData,
-                        "VP Overview",
-                        "VPs",
-                        Statistic.PredefinedStatistic.VP
-                )
-        );
-        gameData.getResourceList().getResources()
-                .forEach(resource ->
-                    jTabbedPane.addTab(
-                            String.format("%s over time", resource.getName()),
-                            createSimpleStatPanel(
-                                    gameData,
-                                    statisticsData,
-                                    String.format("%s Overview", resource.getName()),
-                                    String.format("%ss", resource.getName()),
-                                    new Statistic.ResourceStatistic(resource)
-                            )
+        {
+            jTabbedPane.addTab("General", numberOfRounds);
+            jTabbedPane.addTab(
+                    "TUVs over time",
+                    createSimpleStatPanel(
+                            gameData,
+                            statisticsData,
+                            "TUV Overview",
+                            "TUV",
+                            Statistic.PredefinedStatistic.TUV
                     )
-                );
+            );
+            jTabbedPane.addTab(
+                    "Production over time",
+                    createSimpleStatPanel(
+                            gameData,
+                            statisticsData,
+                            "Production Overview",
+                            "Production",
+                            Statistic.PredefinedStatistic.PRODUCTION
+                    )
+            );
+            jTabbedPane.addTab(
+                    "Units over time",
+                    createSimpleStatPanel(
+                            gameData,
+                            statisticsData,
+                            "Units Overview",
+                            "Units",
+                            Statistic.PredefinedStatistic.UNITS
+                    )
+            );
+            jTabbedPane.addTab(
+                    "VCs over time",
+                    createSimpleStatPanel(
+                            gameData,
+                            statisticsData,
+                            "Victory City Overview",
+                            "Victory Cities",
+                            Statistic.PredefinedStatistic.VICTORY_CITY
+                    )
+            );
+            jTabbedPane.addTab(
+                    "VPs over time",
+                    createSimpleStatPanel(
+                            gameData,
+                            statisticsData,
+                            "VP Overview",
+                            "VPs",
+                            Statistic.PredefinedStatistic.VP
+                    )
+            );
+            gameData.getResourceList().getResources()
+                    .forEach(resource ->
+                        jTabbedPane.addTab(
+                                String.format("%s over time", resource.getName()),
+                                createSimpleStatPanel(
+                                        gameData,
+                                        statisticsData,
+                                        String.format("%s Overview", resource.getName()),
+                                        String.format("%ss", resource.getName()),
+                                        new Statistic.ResourceStatistic(resource)
+                                )
+                        )
+                    );
+        }
+        jTabbedPane.addTab("Battle statistics", createBattleTypesPanel(Statistics.calculateBattleStatistics(gameData)));
 
         this.add(jTabbedPane);
     }

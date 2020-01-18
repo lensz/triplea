@@ -160,7 +160,7 @@ public class BattleRecord implements Serializable {
     this.battleResults = battleResults;
   }
 
-  protected Territory getBattleSite() {
+  public Territory getBattleSite() {
     return battleSite;
   }
 
@@ -168,7 +168,7 @@ public class BattleRecord implements Serializable {
     this.battleSite = battleSite;
   }
 
-  protected GamePlayer getAttacker() {
+  public GamePlayer getAttacker() {
     return attacker;
   }
 
@@ -176,7 +176,7 @@ public class BattleRecord implements Serializable {
     this.attacker = attacker;
   }
 
-  protected GamePlayer getDefender() {
+  public GamePlayer getDefender() {
     return defender;
   }
 
@@ -184,15 +184,15 @@ public class BattleRecord implements Serializable {
     this.defender = defender;
   }
 
-  int getAttackerLostTuv() {
+  public int getAttackerLostTuv() {
     return attackerLostTuv;
   }
 
-  int getDefenderLostTuv() {
+  public int getDefenderLostTuv() {
     return defenderLostTuv;
   }
 
-  protected BattleType getBattleType() {
+  public BattleType getBattleType() {
     return battleType;
   }
 

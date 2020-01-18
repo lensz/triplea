@@ -1,5 +1,6 @@
 package games.strategy.engine.statistics;
 
+import games.strategy.engine.data.BattleRecordsList;
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
 import games.strategy.engine.data.Resource;
@@ -7,14 +8,53 @@ import games.strategy.engine.history.History;
 import games.strategy.engine.history.HistoryNode;
 import games.strategy.engine.history.Round;
 import games.strategy.engine.stats.IStat;
+import games.strategy.triplea.delegate.battle.IBattle;
+import games.strategy.triplea.delegate.data.BattleRecord;
+import games.strategy.triplea.delegate.data.BattleRecords;
 import games.strategy.triplea.ui.AbstractStatPanel;
 import games.strategy.triplea.ui.StatPanel;
+import lombok.Builder;
+import lombok.Getter;
 
 import javax.swing.tree.TreeNode;
 import java.util.*;
 
 class Statistics {
 
+    @Builder
+    @Getter
+    static class BattleStatistics {
+        private Map<String, Double> battleTypeCount = new HashMap<>();
+    }
+
+    private static class BattleStatMeasurer {
+
+        private final Map<String, Double> battleTypeCounter = new HashMap<>();
+
+        BattleStatMeasurer() {
+            super();
+            Arrays.stream(IBattle.BattleType.values())
+                    .forEach(battleType ->
+                            battleTypeCounter.putIfAbsent(battleType.name(), 0.0));
+        }
+
+        void lookAt(BattleRecord battle) {
+            battleTypeCounter.compute(battle.getBattleType().name(), (battleType, c) -> c + 1);
+        }
+
+        BattleStatistics getStatistics() {
+            return BattleStatistics.builder().battleTypeCount(battleTypeCounter).build();
+        }
+    }
+
+    static BattleStatistics calculateBattleStatistics(GameData gameData) {
+        BattleStatMeasurer battleStatMeasurer = new BattleStatMeasurer();
+        BattleRecordsList battleRecordsList = gameData.getBattleRecordsList();
+        battleRecordsList.getBattleRecordsMap().values().stream()
+                .flatMap(brs -> BattleRecords.getAllRecords(brs).stream())
+                .forEach(battleStatMeasurer::lookAt);
+        return battleStatMeasurer.getStatistics();
+    }
 
     private static final Map<Statistic, IStat> defaultGameStatisticOverRoundsMappings = Map.of(
             Statistic.PredefinedStatistic.TUV, new StatPanel.TuvStat(),
