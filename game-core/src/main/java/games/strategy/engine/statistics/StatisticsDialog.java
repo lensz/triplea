@@ -12,7 +12,7 @@ import java.util.Map;
 public class StatisticsDialog extends JPanel {
 
     public StatisticsDialog(GameData gameData) {
-        Map<Statistics.Statistic, Map<String, double[]>> statisticsData = Statistics.calculateGameStatisticsOverRounds(gameData);
+        Map<Statistic, Map<String, double[]>> statisticsData = Statistics.calculateGameStatisticsOverRounds(gameData);
 
         JLabel numberOfRounds = new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory()));
 
@@ -25,7 +25,7 @@ public class StatisticsDialog extends JPanel {
                         statisticsData,
                         "TUV Overview",
                         "TUV",
-                        Statistics.Statistic.TUV
+                        Statistic.PredefinedStatistic.TUV
                 )
         );
         jTabbedPane.addTab(
@@ -35,7 +35,7 @@ public class StatisticsDialog extends JPanel {
                         statisticsData,
                         "Production Overview",
                         "Production",
-                        Statistics.Statistic.PRODUCTION
+                        Statistic.PredefinedStatistic.PRODUCTION
                 )
         );
         jTabbedPane.addTab(
@@ -45,7 +45,7 @@ public class StatisticsDialog extends JPanel {
                         statisticsData,
                         "Units Overview",
                         "Units",
-                        Statistics.Statistic.UNITS
+                        Statistic.PredefinedStatistic.UNITS
                 )
         );
         jTabbedPane.addTab(
@@ -55,7 +55,7 @@ public class StatisticsDialog extends JPanel {
                         statisticsData,
                         "Victory City Overview",
                         "Victory Cities",
-                        Statistics.Statistic.VICTORY_CITY
+                        Statistic.PredefinedStatistic.VICTORY_CITY
                 )
         );
         jTabbedPane.addTab(
@@ -65,18 +65,32 @@ public class StatisticsDialog extends JPanel {
                         statisticsData,
                         "VP Overview",
                         "VPs",
-                        Statistics.Statistic.VP
+                        Statistic.PredefinedStatistic.VP
                 )
         );
+        gameData.getResourceList().getResources()
+                .forEach(resource ->
+                    jTabbedPane.addTab(
+                            String.format("%s over time", resource.getName()),
+                            createSimpleStatPanel(
+                                    gameData,
+                                    statisticsData,
+                                    String.format("%s Overview", resource.getName()),
+                                    String.format("%ss", resource.getName()),
+                                    new Statistic.ResourceStatistic(resource)
+                            )
+                    )
+                );
 
         this.add(jTabbedPane);
     }
 
     private JPanel createSimpleStatPanel(
             GameData gameData,
-            Map<Statistics.Statistic, Map<String, double[]>> statistics,
+            Map<Statistic, Map<String, double[]>> statistics,
             String title,
-            String yAxisLabel, Statistics.Statistic statistic
+            String yAxisLabel,
+            Statistic statistic
     ) {
         XYChart chart = new XYChartBuilder()
                 .width(800)

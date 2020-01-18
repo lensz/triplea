@@ -303,7 +303,7 @@ final class GameMenu extends JMenu {
                 JOptionPane.showMessageDialog(
                     frame,
                     new StatisticsDialog(gameData),
-                    "Game statistics222",
+                    "Game statistics",
                     JOptionPane.INFORMATION_MESSAGE)));
   }
 }

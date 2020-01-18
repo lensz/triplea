@@ -2,10 +2,12 @@ package games.strategy.engine.statistics;
 
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
+import games.strategy.engine.data.Resource;
 import games.strategy.engine.history.History;
 import games.strategy.engine.history.HistoryNode;
 import games.strategy.engine.history.Round;
 import games.strategy.engine.stats.IStat;
+import games.strategy.triplea.ui.AbstractStatPanel;
 import games.strategy.triplea.ui.StatPanel;
 
 import javax.swing.tree.TreeNode;
@@ -13,23 +15,27 @@ import java.util.*;
 
 class Statistics {
 
-    private static final Map<Statistic, IStat> statisticMapping = Map.of(
-            Statistic.TUV, new StatPanel.TuvStat(),
-            Statistic.PRODUCTION, new StatPanel.ProductionStat(),
-            Statistic.UNITS, new StatPanel.UnitsStat(),
-            Statistic.VICTORY_CITY, new StatPanel.VictoryCityStat(),
-            Statistic.VP, new StatPanel.VpStat()
+    private static final Map<Statistic, IStat> defaultStatisticMappings = Map.of(
+            Statistic.PredefinedStatistic.TUV, new StatPanel.TuvStat(),
+            Statistic.PredefinedStatistic.PRODUCTION, new StatPanel.ProductionStat(),
+            Statistic.PredefinedStatistic.UNITS, new StatPanel.UnitsStat(),
+            Statistic.PredefinedStatistic.VICTORY_CITY, new StatPanel.VictoryCityStat(),
+            Statistic.PredefinedStatistic.VP, new StatPanel.VpStat()
     );
 
-    enum Statistic {
-        TUV,
-        PRODUCTION,
-        UNITS,
-        VICTORY_CITY,
-        VP
+    private static Map<Statistic, IStat> createStatisticsMapping(List<Resource> resources) {
+        Map<Statistic, IStat> result = new HashMap<>(defaultStatisticMappings);
+        for (Resource resource : resources) {
+            result.putIfAbsent(
+                    new Statistic.ResourceStatistic(resource),
+                    new AbstractStatPanel.ResourceStat(resource)
+            );
+        }
+        return result;
     }
 
     static Map<Statistic, Map<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {
+        Map<Statistic, IStat> statisticsMapping = createStatisticsMapping(gameData.getResourceList().getResources());
         List<Round> rounds = getRounds(gameData);
         List<GamePlayer> players = gameData.getPlayerList().getPlayers();
         Set<String> alliances = gameData.getAllianceTracker().getAlliances();
@@ -37,7 +43,7 @@ class Statistics {
         Map<Statistic, Map<String, double[]>> result = new HashMap<>();
         {
             // initialize
-            statisticMapping.keySet().forEach(
+            statisticsMapping.keySet().forEach(
                     (statistic) ->  {
                         result.putIfAbsent(statistic, new LinkedHashMap<>());
                         players.forEach(player ->
@@ -53,7 +59,7 @@ class Statistics {
         for (Round round : rounds) {
             gameData.getHistory().gotoNode(round);
 
-            for (Map.Entry<Statistic, IStat> statistic : statisticMapping.entrySet()) {
+            for (Map.Entry<Statistic, IStat> statistic : statisticsMapping.entrySet()) {
                 int roundIndex = round.getRoundNo() - 1;
                 for (GamePlayer player : players) {
                     result.get(statistic.getKey()).get(player.getName())[roundIndex] = statistic.getValue().getValue(player, gameData);
