@@ -1,22 +1,42 @@
 package games.strategy.engine.statistics;
 
-import games.strategy.engine.history.History;
-import org.knowm.xchart.QuickChart;
+import games.strategy.engine.data.GameData;
+import games.strategy.engine.data.GamePlayer;
 import org.knowm.xchart.XChartPanel;
 import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
 
 import javax.swing.*;
+import java.util.Map;
 
 public class StatisticsDialog extends JPanel {
 
-    public StatisticsDialog(History history) {
-        double[] xData = new double[] {0.0, 1.0, 2.0};
-        double[] yData = new double[] {2.0, 1.0, 40.0};
+    public StatisticsDialog(GameData gameData) {
 
-        XYChart chart = QuickChart.getChart("Sample Chart", "X", "Y", "y(x)", xData, yData);
+        this.add(new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory())));
 
-        XChartPanel<XYChart> chartPanel = new XChartPanel<>(chart);
-        this.add(chartPanel);
+        this.add(createPuOverview(gameData));
     }
 
+    private JPanel createPuOverview(GameData gameData) {
+        Map<GamePlayer, int[]> puStats = Statistics.calculatePuOverview(gameData);
+
+        XYChart chart = new XYChartBuilder().width(800).height(600).title("PU Overview").xAxisTitle("#Round").yAxisTitle("PUs").build();
+
+        int[] rounds = createRoundXAxisValues(gameData);
+        for (Map.Entry<GamePlayer, int[]> entry : puStats.entrySet()) {
+            chart.addSeries(entry.getKey().getName(), rounds, entry.getValue());
+        }
+        return new XChartPanel<>(chart);
+
+    }
+
+    private int[] createRoundXAxisValues(GameData gameData) {
+        int currentRound = gameData.getCurrentRound();
+        int[] result = new int[currentRound];
+        for (int i = 0; i < currentRound; i++) {
+            result[i] = i + 1;
+        }
+        return result;
+    }
 }
