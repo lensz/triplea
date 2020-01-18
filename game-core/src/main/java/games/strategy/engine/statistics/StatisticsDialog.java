@@ -14,9 +14,12 @@ public class StatisticsDialog extends JPanel {
 
     public StatisticsDialog(GameData gameData) {
 
-        this.add(new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory())));
+        JLabel numberOfRounds = new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory()));
 
-        this.add(createPuOverview(gameData));
+        JTabbedPane jTabbedPane = new JTabbedPane();
+        jTabbedPane.addTab("General", numberOfRounds);
+        jTabbedPane.addTab("PUs over time", createPuOverview(gameData));
+        this.add(jTabbedPane);
     }
 
     private JPanel createPuOverview(GameData gameData) {
