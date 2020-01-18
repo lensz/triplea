@@ -8,12 +8,11 @@ import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
 import java.util.Map;
-import java.util.SortedMap;
 
 public class StatisticsDialog extends JPanel {
 
     public StatisticsDialog(GameData gameData) {
-        Map<Statistics.Statistic, SortedMap<String, double[]>> statisticMapMap = Statistics.calculateGameStatisticsOverRounds(gameData);
+        Map<Statistics.Statistic, Map<String, double[]>> statisticsData = Statistics.calculateGameStatisticsOverRounds(gameData);
 
         JLabel numberOfRounds = new JLabel("Number of rounds: " + Statistics.calculateNumberOfRounds(gameData.getHistory()));
 
@@ -23,7 +22,7 @@ public class StatisticsDialog extends JPanel {
                 "TUVs over time",
                 createSimpleStatPanel(
                         gameData,
-                        statisticMapMap,
+                        statisticsData,
                         "TUV Overview",
                         "TUV",
                         Statistics.Statistic.TUV
@@ -33,7 +32,7 @@ public class StatisticsDialog extends JPanel {
                 "Production over time",
                 createSimpleStatPanel(
                         gameData,
-                        statisticMapMap,
+                        statisticsData,
                         "Production Overview",
                         "Production",
                         Statistics.Statistic.PRODUCTION
@@ -43,7 +42,7 @@ public class StatisticsDialog extends JPanel {
                 "Units over time",
                 createSimpleStatPanel(
                         gameData,
-                        statisticMapMap,
+                        statisticsData,
                         "Units Overview",
                         "Units",
                         Statistics.Statistic.UNITS
@@ -53,7 +52,7 @@ public class StatisticsDialog extends JPanel {
                 "VCs over time",
                 createSimpleStatPanel(
                         gameData,
-                        statisticMapMap,
+                        statisticsData,
                         "Victory City Overview",
                         "Victory Cities",
                         Statistics.Statistic.VICTORY_CITY
@@ -63,7 +62,7 @@ public class StatisticsDialog extends JPanel {
                 "VPs over time",
                 createSimpleStatPanel(
                         gameData,
-                        statisticMapMap,
+                        statisticsData,
                         "VP Overview",
                         "VPs",
                         Statistics.Statistic.VP
@@ -75,7 +74,7 @@ public class StatisticsDialog extends JPanel {
 
     private JPanel createSimpleStatPanel(
             GameData gameData,
-            Map<Statistics.Statistic, SortedMap<String, double[]>> statistics,
+            Map<Statistics.Statistic, Map<String, double[]>> statistics,
             String title,
             String yAxisLabel, Statistics.Statistic statistic
     ) {

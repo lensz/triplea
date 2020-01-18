@@ -29,19 +29,19 @@ class Statistics {
         VP
     }
 
-    static Map<Statistic, SortedMap<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {
+    static Map<Statistic, Map<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {
         List<Round> rounds = getRounds(gameData);
         List<GamePlayer> players = gameData.getPlayerList().getPlayers();
         Set<String> alliances = gameData.getAllianceTracker().getAlliances();
 
-        Map<Statistic, SortedMap<String, double[]>> result = new HashMap<>();
+        Map<Statistic, Map<String, double[]>> result = new HashMap<>();
         {
             // initialize
             statisticMapping.keySet().forEach(
                     (statistic) ->  {
-                        result.putIfAbsent(statistic, new TreeMap<>());
+                        result.putIfAbsent(statistic, new LinkedHashMap<>());
                         players.forEach(player ->
-                            result.get(statistic).put(player.getName(), new double[rounds.size()])
+                                result.get(statistic).put(player.getName(), new double[rounds.size()])
                         );
                         alliances.forEach(alliance ->
                                 result.get(statistic).put(alliance, new double[rounds.size()])
