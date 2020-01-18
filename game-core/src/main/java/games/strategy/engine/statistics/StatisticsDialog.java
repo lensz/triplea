@@ -20,7 +20,10 @@ public class StatisticsDialog extends JPanel {
         JTabbedPane jTabbedPane = new JTabbedPane();
         jTabbedPane.addTab("General", numberOfRounds);
         jTabbedPane.addTab("TUVs over time", createTUVOverview(gameData, statisticMapMap));
+        jTabbedPane.addTab("Production over time", createProductionOverview(gameData, statisticMapMap));
+        jTabbedPane.addTab("Units over time", createUnitsOverview(gameData, statisticMapMap));
         jTabbedPane.addTab("VCs over time", createVictoryCityOverview(gameData, statisticMapMap));
+        jTabbedPane.addTab("VPs over time", createVPOverview(gameData, statisticMapMap));
 
         this.add(jTabbedPane);
     }
@@ -41,12 +44,39 @@ public class StatisticsDialog extends JPanel {
         return new XChartPanel<>(chart);
     }
 
+    private JPanel createProductionOverview(GameData gameData, Map<Statistics.Statistic, SortedMap<String, double[]>> statistics) {
+        XYChart chart = chartDefaults
+                .title("Production Overview")
+                .yAxisTitle("Production")
+                .build();
+        addStatisticsSeriesToChart(chart, statistics, Statistics.Statistic.PRODUCTION, gameData);
+        return new XChartPanel<>(chart);
+    }
+
+    private JPanel createUnitsOverview(GameData gameData, Map<Statistics.Statistic, SortedMap<String, double[]>> statistics) {
+        XYChart chart = chartDefaults
+                .title("Units Overview")
+                .yAxisTitle("Units")
+                .build();
+        addStatisticsSeriesToChart(chart, statistics, Statistics.Statistic.UNITS, gameData);
+        return new XChartPanel<>(chart);
+    }
+
     private JPanel createVictoryCityOverview(GameData gameData, Map<Statistics.Statistic, SortedMap<String, double[]>> statistics) {
         XYChart chart = chartDefaults
                 .title("Victory City Overview")
                 .yAxisTitle("Victory Cities")
                 .build();
         addStatisticsSeriesToChart(chart, statistics, Statistics.Statistic.VICTORY_CITY, gameData);
+        return new XChartPanel<>(chart);
+    }
+
+    private JPanel createVPOverview(GameData gameData, Map<Statistics.Statistic, SortedMap<String, double[]>> statistics) {
+        XYChart chart = chartDefaults
+                .title("VP Overview")
+                .yAxisTitle("VPs")
+                .build();
+        addStatisticsSeriesToChart(chart, statistics, Statistics.Statistic.VP, gameData);
         return new XChartPanel<>(chart);
     }
 

@@ -15,12 +15,18 @@ class Statistics {
 
     private static final Map<Statistic, IStat> statisticMapping = Map.of(
             Statistic.TUV, new StatPanel.TuvStat(),
-            Statistic.VICTORY_CITY, new StatPanel.VictoryCityStat()
+            Statistic.PRODUCTION, new StatPanel.ProductionStat(),
+            Statistic.UNITS, new StatPanel.UnitsStat(),
+            Statistic.VICTORY_CITY, new StatPanel.VictoryCityStat(),
+            Statistic.VP, new StatPanel.VpStat()
     );
 
     enum Statistic {
         TUV,
-        VICTORY_CITY
+        PRODUCTION,
+        UNITS,
+        VICTORY_CITY,
+        VP
     }
 
     static Map<Statistic, SortedMap<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {

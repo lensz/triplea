@@ -412,7 +412,7 @@ public class StatPanel extends AbstractStatPanel {
     }
   }
 
-  static class ProductionStat extends AbstractStat {
+  public static class ProductionStat extends AbstractStat {
     @Override
     public String getName() {
       return "Production";
@@ -440,7 +440,7 @@ public class StatPanel extends AbstractStatPanel {
     }
   }
 
-  static class UnitsStat extends AbstractStat {
+  public static class UnitsStat extends AbstractStat {
     @Override
     public String getName() {
       return "Units";
@@ -493,7 +493,7 @@ public class StatPanel extends AbstractStatPanel {
     }
   }
 
-  static class VpStat extends AbstractStat {
+  public static class VpStat extends AbstractStat {
     @Override
     public String getName() {
       return "VPs";
