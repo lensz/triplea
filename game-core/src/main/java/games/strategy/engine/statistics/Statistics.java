@@ -47,9 +47,13 @@ class Statistics {
         for (Round round : rounds) {
             gameData.getHistory().gotoNode(round);
 
-            for (GamePlayer player : players) {
-                for (Map.Entry<Statistic, IStat> statistic : statisticMapping.entrySet()) {
-                    result.get(statistic.getKey()).get(player.getName())[round.getRoundNo() - 1] = statistic.getValue().getValue(player, gameData);
+            for (Map.Entry<Statistic, IStat> statistic : statisticMapping.entrySet()) {
+                int roundIndex = round.getRoundNo() - 1;
+                for (GamePlayer player : players) {
+                    result.get(statistic.getKey()).get(player.getName())[roundIndex] = statistic.getValue().getValue(player, gameData);
+                }
+                for (String alliance : alliances) {
+                    result.get(statistic.getKey()).get(alliance)[roundIndex] = statistic.getValue().getValue(alliance, gameData);
                 }
             }
         }
