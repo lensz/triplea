@@ -15,7 +15,8 @@ import java.util.*;
 
 class Statistics {
 
-    private static final Map<Statistic, IStat> defaultStatisticMappings = Map.of(
+
+    private static final Map<Statistic, IStat> defaultGameStatisticOverRoundsMappings = Map.of(
             Statistic.PredefinedStatistic.TUV, new StatPanel.TuvStat(),
             Statistic.PredefinedStatistic.PRODUCTION, new StatPanel.ProductionStat(),
             Statistic.PredefinedStatistic.UNITS, new StatPanel.UnitsStat(),
@@ -23,8 +24,8 @@ class Statistics {
             Statistic.PredefinedStatistic.VP, new StatPanel.VpStat()
     );
 
-    private static Map<Statistic, IStat> createStatisticsMapping(List<Resource> resources) {
-        Map<Statistic, IStat> result = new HashMap<>(defaultStatisticMappings);
+    private static Map<Statistic, IStat> createGameStatisticsOverRoundsMapping(List<Resource> resources) {
+        Map<Statistic, IStat> result = new HashMap<>(defaultGameStatisticOverRoundsMappings);
         for (Resource resource : resources) {
             result.putIfAbsent(
                     new Statistic.ResourceStatistic(resource),
@@ -35,7 +36,7 @@ class Statistics {
     }
 
     static Map<Statistic, Map<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {
-        Map<Statistic, IStat> statisticsMapping = createStatisticsMapping(gameData.getResourceList().getResources());
+        Map<Statistic, IStat> statisticsMapping = createGameStatisticsOverRoundsMapping(gameData.getResourceList().getResources());
         List<Round> rounds = getRounds(gameData);
         List<GamePlayer> players = gameData.getPlayerList().getPlayers();
         Set<String> alliances = gameData.getAllianceTracker().getAlliances();
