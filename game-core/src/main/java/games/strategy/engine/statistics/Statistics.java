@@ -2,40 +2,64 @@ package games.strategy.engine.statistics;
 
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
-import games.strategy.engine.data.Resource;
 import games.strategy.engine.history.History;
 import games.strategy.engine.history.HistoryNode;
 import games.strategy.engine.history.Round;
-import games.strategy.triplea.Constants;
+import games.strategy.engine.stats.IStat;
+import games.strategy.triplea.ui.StatPanel;
 
 import javax.swing.tree.TreeNode;
 import java.util.*;
 
 class Statistics {
 
-    static int calculateNumberOfRounds(History history) {
-        HistoryNode root = (HistoryNode) history.getRoot();
-        return root.getChildCount();
+    private static final Map<Statistic, IStat> statisticMapping = Map.of(
+            Statistic.TUV, new StatPanel.TuvStat(),
+            Statistic.VICTORY_CITY, new StatPanel.VictoryCityStat()
+    );
+
+    enum Statistic {
+        TUV,
+        VICTORY_CITY
     }
 
-    static Map<GamePlayer, int[]> calculatePuOverview(GameData gameData) {
+    static Map<Statistic, SortedMap<String, double[]>> calculateGameStatisticsOverRounds(GameData gameData) {
         List<Round> rounds = getRounds(gameData);
-
         List<GamePlayer> players = gameData.getPlayerList().getPlayers();
-        Resource resource = gameData.getResourceList().getResource(Constants.PUS);
+        Set<String> alliances = gameData.getAllianceTracker().getAlliances();
 
-        Map<GamePlayer, int[]> puStat = new HashMap<>();
-        players.forEach((player) -> puStat.put(player, new int[rounds.size()]));
+        Map<Statistic, SortedMap<String, double[]>> result = new HashMap<>();
+        {
+            // initialize
+            statisticMapping.keySet().forEach(
+                    (statistic) ->  {
+                        result.putIfAbsent(statistic, new TreeMap<>());
+                        players.forEach(player ->
+                            result.get(statistic).put(player.getName(), new double[rounds.size()])
+                        );
+                        alliances.forEach(alliance ->
+                                result.get(statistic).put(alliance, new double[rounds.size()])
+                        );
+                    }
+            );
+        }
 
         for (Round round : rounds) {
             gameData.getHistory().gotoNode(round);
 
             for (GamePlayer player : players) {
-                System.out.println(player.getName());
-                puStat.get(player)[round.getRoundNo() - 1] = player.getResources().getQuantity(resource);
+                for (Map.Entry<Statistic, IStat> statistic : statisticMapping.entrySet()) {
+                    result.get(statistic.getKey()).get(player.getName())[round.getRoundNo() - 1] = statistic.getValue().getValue(player, gameData);
+                }
             }
         }
-        return puStat;
+
+        return result;
+    }
+
+    static int calculateNumberOfRounds(History history) {
+        HistoryNode root = (HistoryNode) history.getRoot();
+        return root.getChildCount();
     }
 
     private static List<Round> getRounds(GameData gameData) {
