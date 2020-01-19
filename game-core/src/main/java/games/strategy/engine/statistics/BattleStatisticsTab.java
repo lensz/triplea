@@ -7,6 +7,7 @@ import org.knowm.xchart.XChartPanel;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
+import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,20 @@ import java.util.stream.Collectors;
 class BattleStatisticsTab extends JPanel {
     BattleStatisticsTab(Statistics.BattleStatistics statistics) {
         this.add(createBattleTypesChart(statistics));
-        this.add(createMostContestTerritoryPanel(statistics));
+
+        JPanel jPanel = new JPanel(new GridLayout(2,1));
+        jPanel.add(createMostContestTerritoryPanel(statistics));
+        jPanel.add(createTuvLossesPanel(statistics));
+        this.add(jPanel);
+    }
+
+    private JTextArea createTuvLossesPanel(Statistics.BattleStatistics statistics) {
+        return new JTextArea(
+                String.format("TUV lost by attackers:\t%.0f\nTUV lost by defenders:\t%.0f",
+                        statistics.getTotalUnitsLostAttacker(),
+                        statistics.getTotalUnitsLostDefender()
+                )
+        );
     }
 
     private XChartPanel<PieChart> createBattleTypesChart(Statistics.BattleStatistics statistics) {

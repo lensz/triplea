@@ -12,41 +12,46 @@ import games.strategy.triplea.delegate.data.BattleRecord;
 import games.strategy.triplea.delegate.data.BattleRecords;
 import games.strategy.triplea.ui.AbstractStatPanel;
 import games.strategy.triplea.ui.StatPanel;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.swing.tree.TreeNode;
 import java.util.*;
 
 class Statistics {
 
-    @Builder
     @Getter
+    @Setter
+    @NoArgsConstructor
     static class BattleStatistics {
         private Map<String, Double> battleTypeCount = new HashMap<>();
         private Map<String, Double> battleSiteCount = new HashMap<>();
+        private double totalUnitsLostAttacker = 0;
+        private double totalUnitsLostDefender = 0;
     }
 
     private static class BattleStatMeasurer {
 
-        private final Map<String, Double> battleTypeCounter = new HashMap<>();
-        private final Map<String, Double> battleSiteCounter = new HashMap<>();
+        private final BattleStatistics workingOn = new BattleStatistics();
 
         void lookAt(BattleRecord battle) {
             String battleType = battle.getBattleType().name();
-            double battleTypeCount = battleTypeCounter.getOrDefault(battleType, 0.0);
-            battleTypeCounter.put(battleType, battleTypeCount + 1);
+            Map<String, Double> battleTypeCount = workingOn.getBattleTypeCount();
+            double battleTypeCountValue = battleTypeCount.getOrDefault(battleType, 0.0);
+            battleTypeCount.put(battleType, battleTypeCountValue + 1);
 
             String battleSite = battle.getBattleSite().getName();
-            double battleSiteCount = battleSiteCounter.getOrDefault(battleSite, 0.0);
-            battleSiteCounter.put(battleSite, battleSiteCount + 1);
+            Map<String, Double> battleSiteCount = workingOn.getBattleSiteCount();
+            double battleSiteCountValue = battleSiteCount.getOrDefault(battleSite, 0.0);
+            battleSiteCount.put(battleSite, battleSiteCountValue + 1);
+
+            workingOn.totalUnitsLostAttacker += battle.getAttackerLostTuv();
+            workingOn.totalUnitsLostDefender += battle.getDefenderLostTuv();
         }
 
         BattleStatistics getStatistics() {
-            return BattleStatistics.builder()
-                    .battleTypeCount(battleTypeCounter)
-                    .battleSiteCount(battleSiteCounter)
-                    .build();
+            return workingOn;
         }
     }
 
