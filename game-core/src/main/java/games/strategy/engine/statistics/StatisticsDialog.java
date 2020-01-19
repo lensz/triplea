@@ -1,34 +1,15 @@
 package games.strategy.engine.statistics;
 
 import games.strategy.engine.data.GameData;
-import org.knowm.xchart.*;
+import org.knowm.xchart.XChartPanel;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Map;
 
 public class StatisticsDialog extends JPanel {
-
-    private JPanel createBattleTypesPanel(Statistics.BattleStatistics statistics) {
-        JPanel result = new JPanel(new GridBagLayout());
-
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        PieChartBuilder pieChartBuilder = new PieChartBuilder()
-                .title("Battle Types");
-        PieChart chart = pieChartBuilder.build();
-        statistics.getBattleTypeCount().forEach(chart::addSeries);
-        result.add(new XChartPanel<>(chart), constraints);
-
-        PieChartBuilder pieChartBuilder2 = new PieChartBuilder()
-                .theme(Styler.ChartTheme.Matlab)
-                .title("Battle Sites");
-        PieChart chart2 = pieChartBuilder2.build();
-        statistics.getBattleSiteCount().forEach(chart2::addSeries);
-        result.add(new XChartPanel<>(chart2));
-        return result;
-    }
 
     public StatisticsDialog(GameData gameData) {
         Map<Statistic, Map<String, double[]>> statisticsData = Statistics.calculateGameStatisticsOverRounds(gameData);
@@ -102,7 +83,7 @@ public class StatisticsDialog extends JPanel {
                         )
                     );
         }
-        jTabbedPane.addTab("Battle statistics", createBattleTypesPanel(Statistics.calculateBattleStatistics(gameData)));
+        jTabbedPane.addTab("Battle statistics", new BattleStatisticsTab(Statistics.calculateBattleStatistics(gameData)));
 
         this.add(jTabbedPane);
     }

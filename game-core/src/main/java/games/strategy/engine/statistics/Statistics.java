@@ -8,7 +8,6 @@ import games.strategy.engine.history.History;
 import games.strategy.engine.history.HistoryNode;
 import games.strategy.engine.history.Round;
 import games.strategy.engine.stats.IStat;
-import games.strategy.triplea.delegate.battle.IBattle;
 import games.strategy.triplea.delegate.data.BattleRecord;
 import games.strategy.triplea.delegate.data.BattleRecords;
 import games.strategy.triplea.ui.AbstractStatPanel;
