@@ -25,25 +25,29 @@ class Statistics {
     @Getter
     static class BattleStatistics {
         private Map<String, Double> battleTypeCount = new HashMap<>();
+        private Map<String, Double> battleSiteCount = new HashMap<>();
     }
 
     private static class BattleStatMeasurer {
 
         private final Map<String, Double> battleTypeCounter = new HashMap<>();
-
-        BattleStatMeasurer() {
-            super();
-            Arrays.stream(IBattle.BattleType.values())
-                    .forEach(battleType ->
-                            battleTypeCounter.putIfAbsent(battleType.name(), 0.0));
-        }
+        private final Map<String, Double> battleSiteCounter = new HashMap<>();
 
         void lookAt(BattleRecord battle) {
-            battleTypeCounter.compute(battle.getBattleType().name(), (battleType, c) -> c + 1);
+            String battleType = battle.getBattleType().name();
+            double battleTypeCount = battleTypeCounter.getOrDefault(battleType, 0.0);
+            battleTypeCounter.put(battleType, battleTypeCount + 1);
+
+            String battleSite = battle.getBattleSite().getName();
+            double battleSiteCount = battleSiteCounter.getOrDefault(battleSite, 0.0);
+            battleSiteCounter.put(battleSite, battleSiteCount + 1);
         }
 
         BattleStatistics getStatistics() {
-            return BattleStatistics.builder().battleTypeCount(battleTypeCounter).build();
+            return BattleStatistics.builder()
+                    .battleTypeCount(battleTypeCounter)
+                    .battleSiteCount(battleSiteCounter)
+                    .build();
         }
     }
 

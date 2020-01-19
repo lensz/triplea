@@ -5,19 +5,29 @@ import org.knowm.xchart.*;
 import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Map;
 
 public class StatisticsDialog extends JPanel {
 
     private JPanel createBattleTypesPanel(Statistics.BattleStatistics statistics) {
+        JPanel result = new JPanel(new GridBagLayout());
+
+        GridBagConstraints constraints = new GridBagConstraints();
+
         PieChartBuilder pieChartBuilder = new PieChartBuilder()
-                .height(200)
-                .width(200)
                 .title("Battle Types");
         PieChart chart = pieChartBuilder.build();
-        statistics.getBattleTypeCount().entrySet().stream()
-                .forEach(stringDoubleEntry -> chart.addSeries(stringDoubleEntry.getKey(), stringDoubleEntry.getValue()));
-        return new XChartPanel<>(chart);
+        statistics.getBattleTypeCount().forEach(chart::addSeries);
+        result.add(new XChartPanel<>(chart), constraints);
+
+        PieChartBuilder pieChartBuilder2 = new PieChartBuilder()
+                .theme(Styler.ChartTheme.Matlab)
+                .title("Battle Sites");
+        PieChart chart2 = pieChartBuilder2.build();
+        statistics.getBattleSiteCount().forEach(chart2::addSeries);
+        result.add(new XChartPanel<>(chart2));
+        return result;
     }
 
     public StatisticsDialog(GameData gameData) {
