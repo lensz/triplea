@@ -1,13 +1,12 @@
 package games.strategy.engine.statistics;
 
-import games.strategy.engine.data.BattleRecordsList;
-import games.strategy.engine.data.GameData;
-import games.strategy.engine.data.GamePlayer;
-import games.strategy.engine.data.Resource;
+import games.strategy.engine.data.*;
+import games.strategy.engine.history.EventChild;
 import games.strategy.engine.history.History;
 import games.strategy.engine.history.HistoryNode;
 import games.strategy.engine.history.Round;
 import games.strategy.engine.stats.IStat;
+import games.strategy.triplea.TripleAUnit;
 import games.strategy.triplea.delegate.data.BattleRecord;
 import games.strategy.triplea.delegate.data.BattleRecords;
 import games.strategy.triplea.ui.AbstractStatPanel;
@@ -55,7 +54,59 @@ class Statistics {
         }
     }
 
+    @Getter
+    private static class HistoryTraverseMeasurer {
+
+        private double totalUnitsLostAttacker = 0;
+        private double totalUnitsLostDefender = 0;
+
+        private Map<GamePlayer, Map<UnitType, Integer>> casualtiesPerPlayerPerUnitType;
+
+        HistoryTraverseMeasurer(GameData gameData) {
+            casualtiesPerPlayerPerUnitType = new LinkedHashMap<>();
+            for (GamePlayer player : gameData.getPlayerList().getPlayers()) {
+                casualtiesPerPlayerPerUnitType.put(player, new LinkedHashMap<>());
+            }
+        }
+
+        private boolean isBattleSummaryNode(HistoryNode node) {
+            return node instanceof EventChild &&
+                    node.getUserObject() instanceof String &&
+                    ((String) node.getUserObject()).startsWith("Battle casualty summary:");
+        }
+
+        void lookAt(TreeNode treeNode) {
+            HistoryNode node = (HistoryNode) treeNode;
+            if (!isBattleSummaryNode(node)) {
+                return;
+            }
+            EventChild battleSummary = (EventChild) node;
+            List<TripleAUnit> killed;
+            {
+                try {
+                    killed = (List<TripleAUnit>) battleSummary.getRenderingData();
+                }
+                catch (ClassCastException e) {
+                    throw new IllegalStateException("Did not expect this type in rendering data.", e);
+                }
+            }
+            for (TripleAUnit killedUnit : killed) {
+                casualtiesPerPlayerPerUnitType.putIfAbsent(killedUnit.getOwner(), new LinkedHashMap<>());
+                casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).putIfAbsent(killedUnit.getType(), 0);
+                casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).compute(killedUnit.getType(), (tripleAUnit, integer) -> integer + 1);
+            }
+        }
+    }
+
     static BattleStatistics calculateBattleStatistics(GameData gameData) {
+        HistoryTraverseMeasurer historyBasedMeasurer = new HistoryTraverseMeasurer(gameData);
+        Enumeration<TreeNode> treeNodeEnumeration = ((HistoryNode) gameData.getHistory().getRoot())
+                .breadthFirstEnumeration();
+        while (treeNodeEnumeration.hasMoreElements()) {
+            historyBasedMeasurer.lookAt(treeNodeEnumeration.nextElement());
+        }
+
+
         BattleStatMeasurer battleStatMeasurer = new BattleStatMeasurer();
         BattleRecordsList battleRecordsList = gameData.getBattleRecordsList();
         battleRecordsList.getBattleRecordsMap().values().stream()
