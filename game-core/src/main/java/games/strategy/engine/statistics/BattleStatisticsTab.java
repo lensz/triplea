@@ -72,7 +72,7 @@ class BattleStatisticsTab extends JPanel {
             }
         });
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(200, 200));
+        scrollPane.setPreferredSize(new Dimension(300, 300));
         scrollPane.setBorder(
                 BorderFactory.createTitledBorder(
                         BorderFactory.createEtchedBorder(),
