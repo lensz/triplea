@@ -1,8 +1,12 @@
 package games.strategy.engine.statistics;
 
+import games.strategy.engine.data.GamePlayer;
+import games.strategy.engine.data.Territory;
+import games.strategy.engine.history.Round;
 import org.knowm.xchart.PieChart;
 import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.XChartPanel;
+import org.triplea.util.Triple;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -17,9 +21,10 @@ class BattleStatisticsTab extends JPanel {
     BattleStatisticsTab(Statistics.BattleStatistics statistics) {
         this.add(createBattleTypesChart(statistics));
 
-        JPanel jPanel = new JPanel(new GridLayout(2,1));
+        JPanel jPanel = new JPanel(new GridLayout(3,1));
         jPanel.add(createMostContestTerritoryPanel(statistics));
         jPanel.add(createTuvLossesPanel(statistics));
+        jPanel.add(createBiggestBattlePanel(statistics));
         this.add(jPanel);
     }
 
@@ -76,6 +81,50 @@ class BattleStatisticsTab extends JPanel {
                 BorderFactory.createTitledBorder(
                     BorderFactory.createEtchedBorder(),
                     "Most contested territory",
+                    TitledBorder.CENTER,
+                    TitledBorder.TOP
+                )
+        );
+        return scrollPane;
+    }
+
+    private JScrollPane createBiggestBattlePanel(Statistics.BattleStatistics statistics) {
+        List<Map.Entry<Triple<Round, Territory, GamePlayer>, Double>> tuvPerBattle = statistics.getInitialTuvBattle().entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+
+        JTable table = new JTable();
+        table.setModel(new AbstractTableModel() {
+            @Override
+            public String getColumnName(int i) {
+                return i == 0 ? "Battle" : "Total TUV army size";
+            }
+
+            @Override
+            public int getRowCount() {
+                return tuvPerBattle.size();
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 2;
+            }
+
+            @Override
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                if (columnIndex == 0) {
+                    Triple<Round, Territory, GamePlayer> battle = tuvPerBattle.get(rowIndex).getKey();
+                    return battle.getFirst().getTitle() + " : " + battle.getSecond().toString();
+                }
+                return tuvPerBattle.get(rowIndex).getValue();
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(
+                BorderFactory.createTitledBorder(
+                    BorderFactory.createEtchedBorder(),
+                    "Biggest battle",
                     TitledBorder.CENTER,
                     TitledBorder.TOP
                 )

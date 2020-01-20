@@ -1,33 +1,40 @@
 package games.strategy.engine.statistics;
 
 import games.strategy.engine.data.*;
-import games.strategy.engine.history.EventChild;
-import games.strategy.engine.history.History;
-import games.strategy.engine.history.HistoryNode;
-import games.strategy.engine.history.Round;
+import games.strategy.engine.history.*;
 import games.strategy.engine.stats.IStat;
 import games.strategy.triplea.TripleAUnit;
 import games.strategy.triplea.delegate.data.BattleRecord;
 import games.strategy.triplea.delegate.data.BattleRecords;
 import games.strategy.triplea.ui.AbstractStatPanel;
 import games.strategy.triplea.ui.StatPanel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import games.strategy.triplea.util.TuvUtils;
+import lombok.*;
+import org.triplea.java.collections.IntegerMap;
+import org.triplea.util.Triple;
 
 import javax.swing.tree.TreeNode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 class Statistics {
 
     @Getter
     @Setter
     @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
     static class BattleStatistics {
         private Map<String, Double> battleTypeCount = new HashMap<>();
         private Map<String, Double> battleSiteCount = new HashMap<>();
         private double totalUnitsLostAttacker = 0;
         private double totalUnitsLostDefender = 0;
+        private Map<GamePlayer, Map<UnitType, Integer>> casualtiesPerPlayerPerUnitType = new LinkedHashMap<>();
+        /**
+         * Map<"Battle", "initial tuv of participating units attacker + defender">
+         * Battle = <battleTime, battleSite, attacker>
+         */
+        private Map<Triple<Round, Territory, GamePlayer>, Double> initialTuvBattle = new HashMap<>();
     }
 
     private static class BattleStatMeasurer {
@@ -57,44 +64,60 @@ class Statistics {
     @Getter
     private static class HistoryTraverseMeasurer {
 
-        private double totalUnitsLostAttacker = 0;
-        private double totalUnitsLostDefender = 0;
+        private final BattleStatistics workingOn = new BattleStatistics();
 
-        private Map<GamePlayer, Map<UnitType, Integer>> casualtiesPerPlayerPerUnitType;
+        private Map<GamePlayer, IntegerMap<UnitType>> unitCostMap = new HashMap<>();
 
         HistoryTraverseMeasurer(GameData gameData) {
-            casualtiesPerPlayerPerUnitType = new LinkedHashMap<>();
+            workingOn.casualtiesPerPlayerPerUnitType = new LinkedHashMap<>();
             for (GamePlayer player : gameData.getPlayerList().getPlayers()) {
-                casualtiesPerPlayerPerUnitType.put(player, new LinkedHashMap<>());
+                workingOn.casualtiesPerPlayerPerUnitType.put(player, new LinkedHashMap<>());
+
+                unitCostMap.putIfAbsent(player, TuvUtils.getCostsForTuv(player, gameData));
             }
         }
 
-        private boolean isBattleSummaryNode(HistoryNode node) {
+        private boolean isEventChildAndUserObjectContains(HistoryNode node, String userObjectContainsCondition) {
             return node instanceof EventChild &&
                     node.getUserObject() instanceof String &&
-                    ((String) node.getUserObject()).startsWith("Battle casualty summary:");
+                    ((String) node.getUserObject()).contains(userObjectContainsCondition);
         }
 
         void lookAt(TreeNode treeNode) {
             HistoryNode node = (HistoryNode) treeNode;
-            if (!isBattleSummaryNode(node)) {
-                return;
-            }
-            EventChild battleSummary = (EventChild) node;
-            List<TripleAUnit> killed;
-            {
-                try {
-                    killed = (List<TripleAUnit>) battleSummary.getRenderingData();
-                }
-                catch (ClassCastException e) {
-                    throw new IllegalStateException("Did not expect this type in rendering data.", e);
+            if (isEventChildAndUserObjectContains(node, "Battle casualty summary:")) {
+                EventChild battleSummary = (EventChild) node;
+                List<TripleAUnit> killed = (List<TripleAUnit>) battleSummary.getRenderingData();
+                for (TripleAUnit killedUnit : killed) {
+                    workingOn.casualtiesPerPlayerPerUnitType.putIfAbsent(killedUnit.getOwner(), new LinkedHashMap<>());
+                    workingOn.casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).putIfAbsent(killedUnit.getType(), 0);
+                    workingOn.casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).compute(killedUnit.getType(), (tripleAUnit, integer) -> integer + 1);
                 }
             }
-            for (TripleAUnit killedUnit : killed) {
-                casualtiesPerPlayerPerUnitType.putIfAbsent(killedUnit.getOwner(), new LinkedHashMap<>());
-                casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).putIfAbsent(killedUnit.getType(), 0);
-                casualtiesPerPlayerPerUnitType.get(killedUnit.getOwner()).compute(killedUnit.getType(), (tripleAUnit, integer) -> integer + 1);
+            if (
+                    isEventChildAndUserObjectContains(node, " attack with ") ||
+                    isEventChildAndUserObjectContains(node, " defend with ")
+            ) {
+                EventChild unitSummary = (EventChild) node;
+                List<Unit> units = (List<Unit>) unitSummary.getRenderingData();
+                GamePlayer player = ((Step)unitSummary.getParent().getParent()).getPlayerId();
+                Triple<Round, Territory, GamePlayer> battle = Triple.of(
+                        (Round) unitSummary.getParent().getParent().getParent(),
+                        (Territory) ((Event)unitSummary.getParent()).getRenderingData(),
+                        player
+                );
+                workingOn.initialTuvBattle.putIfAbsent(battle, 0.0);
+                Optional<Integer> tuv = units.stream()
+                        .collect(Collectors.groupingBy(Unit::getOwner)).entrySet().stream()
+                        .map(gamePlayerListEntry -> TuvUtils.getTuv(gamePlayerListEntry.getValue(), getUnitCostMap().get(gamePlayerListEntry.getKey())))
+                        .reduce((i, j) -> i + j);
+
+                workingOn.initialTuvBattle.compute(battle, (__, aDouble) -> aDouble + tuv.get());
             }
+        }
+
+        BattleStatistics getStatistics() {
+            return workingOn;
         }
     }
 
@@ -106,13 +129,20 @@ class Statistics {
             historyBasedMeasurer.lookAt(treeNodeEnumeration.nextElement());
         }
 
-
-        BattleStatMeasurer battleStatMeasurer = new BattleStatMeasurer();
+        BattleStatMeasurer battleRecordsMeasurer = new BattleStatMeasurer();
         BattleRecordsList battleRecordsList = gameData.getBattleRecordsList();
         battleRecordsList.getBattleRecordsMap().values().stream()
                 .flatMap(brs -> BattleRecords.getAllRecords(brs).stream())
-                .forEach(battleStatMeasurer::lookAt);
-        return battleStatMeasurer.getStatistics();
+                .forEach(battleRecordsMeasurer::lookAt);
+        return BattleStatistics.builder()
+                .battleTypeCount(battleRecordsMeasurer.getStatistics().getBattleTypeCount())
+                .battleSiteCount(battleRecordsMeasurer.getStatistics().getBattleSiteCount())
+                .totalUnitsLostAttacker(battleRecordsMeasurer.getStatistics().getTotalUnitsLostAttacker())
+                .totalUnitsLostDefender(battleRecordsMeasurer.getStatistics().getTotalUnitsLostDefender())
+
+                .initialTuvBattle(historyBasedMeasurer.getStatistics().getInitialTuvBattle())
+                .casualtiesPerPlayerPerUnitType(historyBasedMeasurer.getStatistics().getCasualtiesPerPlayerPerUnitType())
+                .build();
     }
 
     private static final Map<Statistic, IStat> defaultGameStatisticOverRoundsMappings = Map.of(
