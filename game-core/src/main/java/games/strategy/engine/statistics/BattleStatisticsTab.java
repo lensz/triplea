@@ -15,13 +15,14 @@ import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 class BattleStatisticsTab extends JPanel {
     BattleStatisticsTab(Statistics.BattleStatistics statistics) {
-        this.add(createBattleTypesChart(statistics));
 
-        JPanel jPanel = new JPanel(new GridLayout(3,1));
+        JPanel jPanel = new JPanel(new GridLayout(2,2));
+        jPanel.add(createBattleTypesChart(statistics));
         jPanel.add(createMostContestTerritoryPanel(statistics));
         jPanel.add(createTuvLossesPanel(statistics));
         jPanel.add(createBiggestBattlePanel(statistics));
@@ -39,10 +40,48 @@ class BattleStatisticsTab extends JPanel {
 
     private XChartPanel<PieChart> createBattleTypesChart(Statistics.BattleStatistics statistics) {
         PieChartBuilder pieChartBuilder = new PieChartBuilder()
-                .title("Battle Types");
+                .title("Battle Types")
+                .width(50)
+                .height(50);
         PieChart chart = pieChartBuilder.build();
         statistics.getBattleTypeCount().forEach(chart::addSeries);
         return new XChartPanel<>(chart);
+    }
+
+    private JScrollPane createTablePanel(List<?> entries, List<String> columnNames, BiFunction<Integer, Integer, Object> getValueAtXY, String title) {
+        JTable table = new JTable();
+        table.setModel(new AbstractTableModel() {
+            @Override
+            public String getColumnName(int i) {
+                return columnNames.get(i);
+            }
+
+            @Override
+            public int getRowCount() {
+                return entries.size();
+            }
+
+            @Override
+            public int getColumnCount() {
+                return columnNames.size();
+            }
+
+            @Override
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                return getValueAtXY.apply(columnIndex, rowIndex);
+            }
+        });
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(200, 200));
+        scrollPane.setBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createEtchedBorder(),
+                        title,
+                        TitledBorder.CENTER,
+                        TitledBorder.TOP
+                )
+        );
+        return scrollPane;
     }
 
     private JScrollPane createMostContestTerritoryPanel(Statistics.BattleStatistics statistics) {
@@ -50,42 +89,17 @@ class BattleStatisticsTab extends JPanel {
                 .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
                 .collect(Collectors.toList());
 
-        JTable battleSiteTable = new JTable();
-        battleSiteTable.setModel(new AbstractTableModel() {
-            @Override
-            public String getColumnName(int i) {
-                return i == 0 ? "Territory" : "#Battles";
-            }
-
-            @Override
-            public int getRowCount() {
-                return battleSitesByNumberOfBattles.size();
-            }
-
-            @Override
-            public int getColumnCount() {
-                return 2;
-            }
-
-            @Override
-            public Object getValueAt(int rowIndex, int columnIndex) {
-                if (columnIndex == 0) {
-                    return battleSitesByNumberOfBattles.get(rowIndex).getKey();
-                }
-                return battleSitesByNumberOfBattles.get(rowIndex).getValue();
-            }
-        });
-
-        JScrollPane scrollPane = new JScrollPane(battleSiteTable);
-        scrollPane.setBorder(
-                BorderFactory.createTitledBorder(
-                    BorderFactory.createEtchedBorder(),
-                    "Most contested territory",
-                    TitledBorder.CENTER,
-                    TitledBorder.TOP
-                )
+        return createTablePanel(
+                battleSitesByNumberOfBattles,
+                List.of("Territory", "#Battles"),
+                (columnIndex, rowIndex) -> {
+                    if (columnIndex == 0) {
+                        return battleSitesByNumberOfBattles.get(rowIndex).getKey();
+                    }
+                    return battleSitesByNumberOfBattles.get(rowIndex).getValue();
+                },
+                "Most contested Territory"
         );
-        return scrollPane;
     }
 
     private JScrollPane createBiggestBattlePanel(Statistics.BattleStatistics statistics) {
@@ -93,42 +107,17 @@ class BattleStatisticsTab extends JPanel {
                 .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
                 .collect(Collectors.toList());
 
-        JTable table = new JTable();
-        table.setModel(new AbstractTableModel() {
-            @Override
-            public String getColumnName(int i) {
-                return i == 0 ? "Battle" : "Total TUV army size";
-            }
-
-            @Override
-            public int getRowCount() {
-                return tuvPerBattle.size();
-            }
-
-            @Override
-            public int getColumnCount() {
-                return 2;
-            }
-
-            @Override
-            public Object getValueAt(int rowIndex, int columnIndex) {
-                if (columnIndex == 0) {
-                    Triple<Round, Territory, GamePlayer> battle = tuvPerBattle.get(rowIndex).getKey();
-                    return battle.getFirst().getTitle() + " : " + battle.getSecond().toString();
-                }
-                return tuvPerBattle.get(rowIndex).getValue();
-            }
-        });
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(
-                BorderFactory.createTitledBorder(
-                    BorderFactory.createEtchedBorder(),
-                    "Biggest battle",
-                    TitledBorder.CENTER,
-                    TitledBorder.TOP
-                )
+        return createTablePanel(
+                tuvPerBattle,
+                List.of("Battle", "Total TUV army size"),
+                (columnIndex, rowIndex) -> {
+                    if (columnIndex == 0) {
+                        Triple<Round, Territory, GamePlayer> battle = tuvPerBattle.get(rowIndex).getKey();
+                        return battle.getFirst().getTitle() + " : " + battle.getSecond().toString();
+                    }
+                    return tuvPerBattle.get(rowIndex).getValue();
+                },
+                "Biggest battle"
         );
-        return scrollPane;
     }
 }
