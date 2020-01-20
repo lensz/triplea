@@ -109,7 +109,7 @@ class BattleStatisticsTab extends JPanel {
 
         return createTablePanel(
                 tuvPerBattle,
-                List.of("Battle", "Total TUV army size"),
+                List.of("Battle", "TUV army size"),
                 (columnIndex, rowIndex) -> {
                     if (columnIndex == 0) {
                         Triple<Round, Territory, GamePlayer> battle = tuvPerBattle.get(rowIndex).getKey();
