@@ -35,6 +35,7 @@ import games.strategy.triplea.ui.PoliticalStateOverview;
 import games.strategy.triplea.ui.TripleAFrame;
 import games.strategy.triplea.ui.UiContext;
 import games.strategy.triplea.ui.VerifiedRandomNumbersDialog;
+import games.strategy.triplea.ui.statistics.StatisticsDialog;
 import games.strategy.ui.IntTextField;
 import games.strategy.ui.SwingAction;
 
@@ -72,8 +73,9 @@ final class GameMenu extends JMenu {
     addNotificationSettings();
     addShowDiceStats();
     addRollDice();
+    addStatistics();
     addMenuItemWithHotkey(SwingAction.of("Battle Calculator", e -> OddsCalculatorDialog.show(frame, null)),
-        KeyEvent.VK_B);
+            KeyEvent.VK_B);
   }
 
   private void addMenuItemWithHotkey(final Action action, final int keyCode) {
@@ -235,4 +237,15 @@ final class GameMenu extends JMenu {
     add(rollDiceBox);
   }
 
+  private void addStatistics() {
+    add(
+        SwingAction.of(
+            "Game statistics",
+            e ->
+                JOptionPane.showMessageDialog(
+                    frame,
+                    new StatisticsDialog(gameData),
+                    "Game statistics",
+                    JOptionPane.INFORMATION_MESSAGE)));
+  }
 }
