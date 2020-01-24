@@ -50,6 +50,7 @@ subprojects {
         mockitoVersion = '2.22.0'
         postgresqlVersion = '42.2.2'
         sonatypeGoodiesPrefsVersion = '2.2.5'
+        xchartVersion = '3.6.1'
     }
 
     repositories {
